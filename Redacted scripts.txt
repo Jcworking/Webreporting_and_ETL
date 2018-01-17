@@ -1,0 +1,236 @@
+Manager.py
+
+import Webconnections
+import ETLwork
+import glob
+import os
+import time
+from datetime import datetime
+from datetime import timedelta
+
+
+
+def main():
+    print_header()
+    run_event_loop()
+    recursions()
+
+def print_header():
+    print('-----------------------------')
+    print('Report Web data pull for 2018. Log start!')
+    print('-----------------------------')
+    print('-----------------------------')
+
+def run_event_loop():
+    print('Testing web connection')
+    print('Testing Corp connection')
+    Webconnections.report_web()
+    print('Report Web Complete!')
+    ETLwork.ETL_work()
+    print('ETL Complete!')
+    print('-------------')
+    print('Return to Standby')
+    print('-------------')
+
+def recursions():
+
+    diff = 0
+
+    while diff < 3600:
+        list_of_files = glob.glob('\\\\Filelocation here\\*.csv')
+        latest_file = max(list_of_files, key=os.path.getctime)
+        print(latest_file)
+
+        last_upload = latest_file[-19:-4]
+        print(last_upload)
+
+        trimmed_create = datetime.strptime(last_upload, '%Y%m%d_%H%M%S')
+        print(trimmed_create)
+
+        current_time = datetime.now()
+
+        print(current_time)
+
+        diff = timedelta.total_seconds(current_time - trimmed_create)
+
+        print(diff)
+
+        print('wait')
+
+        time.sleep(30)
+
+
+    print("Run Script")
+    main()
+
+
+
+#main()
+
+
+if __name__ == '__main__':
+    main()
+-------------------------------------------------------------------------
+Webconnections.py
+
+from selenium import webdriver
+import os
+import time
+
+def report_web():
+
+    file_path = '\\\\Filelocation here\\'
+
+    options = webdriver.ChromeOptions()
+
+    New_default = {"download.default_directory": "\\\\Filelocation here"}
+
+    options.add_experimental_option("prefs",New_default)
+
+    options.add_argument("--start-minimized")
+
+
+    chromedriver = 'C:\\"Driver location here"\\chromedriver.exe'
+
+    driver = webdriver.Chrome( executable_path=chromedriver, options= options)
+
+    driver.set_window_size(20, 20)
+
+    print('initiating')
+
+
+    print('attempting report web')
+
+    driver.get('URL of the reporting site here')
+    print('report web success')
+    time.sleep(.5)
+
+    print('attempting report export')
+    driver.get('URL of the reporting site here')
+    print('report export success')
+    time.sleep(.5)
+
+    driver.find_element_by_id("ViewId").send_keys('ORG Attribute here')
+   
+    time.sleep(2)
+
+    #driver.find_element_by_id("ViewId").send_keys('Second attribute here')
+   
+    #time.sleep(2)
+
+
+    driver.find_element_by_id("UserExportPrintGroupID").send_keys('Report selection here')
+    time.sleep(1)
+
+    driver.find_element_by_id("UserExportPrintGroupID").send_keys('Report selection here')
+    time.sleep(1)
+
+    driver.find_element_by_id("UserExportPrintGroupID").send_keys('Report selection here')
+    print('report name')
+    print('idle')
+    time.sleep(5)
+
+    print('push button')
+    driver.find_element_by_id("btnExport").click()
+    print('wait for report to generate')
+
+    starting_files = 0
+    for file in os.listdir(file_path):
+        if file.endswith(".csv"):
+            starting_files = starting_files + 1
+
+    i = 0
+    while i < 48:
+        comparison_files = 0
+        for file in os.listdir(file_path):
+            if file.endswith(".csv"):
+                comparison_files = comparison_files + 1
+        if comparison_files == starting_files:
+            i = i + 1
+            time.sleep(5)
+            print(i*5)
+            #print(starting_files)
+            #print(comparison_files)
+        elif starting_files < comparison_files:
+            print('Download complete')
+            driver.quit()
+            break
+    driver.quit()
+
+    pass
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+ETLwork.py
+
+import pandas as pd
+import glob
+import os
+
+
+def ETL_work():
+
+    list_of_files = glob.glob('\\\\file location here\\*.csv')
+    latest_file = max(list_of_files, key=os.path.getctime)
+    print(latest_file)
+
+    target = "\\\\File location here\\Result file name here.xlsx"
+
+
+    report_web= pd.read_csv(latest_file, usecols=['Column Names1', 'Column Names2', 'Column Names3', 'Column Names4', 'Column Names5', 'Column Names6'],
+                            dtype={'Column Names1': bool, 'Column Names2': bool, 'Column Names3': bool}, header=1, encoding='latin1', low_memory=False).to_dict()
+
+    depricated = {'Legacy stuff':0, 'Legacy header':0} #, 'stuff I hate':0}
+
+
+    first_join = dict(report_web, **depricated)
+
+
+    df1 = pd.DataFrame(first_join).rename(columns={'Current name':'Old column name'})
+    print(df1.shape)
+
+    df2 = df1
+
+
+
+    df3 = pd.read_excel("\\\\Lookup table file location and name.xls", sheet_name= 'tab in the excel of lookup table', columns= ['Thing I need', 'Thing I need2', 'thing I need 3', 'Thing I need 4', 'Key value on both data frames'], dtype= object, header=0)
+   # print('df3')
+    #print(df3.shape)
+
+    df4 = pd.read_excel("\\\\Lookup table file location and name.xls", sheet_name= 'tab in the excel of lookup table', columns= ['Thing I need', 'Thing I need2', 'thing I need 3', 'Thing I need 4', 'Key value on both data frames'], dtype= object, header=0)
+    #print('df4')
+    #print(df4.shape)
+    df5 = pd.read_excel("\\\\Lookup table file location and name.xls", sheet_name= 'tab in the excel of lookup table', columns= ['Thing I need', 'Thing I need2', 'thing I need 3', 'Thing I need 4', 'Key value on both data frames'], dtype= object, header=0)
+    #print('df5')
+    #print(df5.shape)
+    df6 = pd.read_excel("\\\\Lookup table file location and name.xls", sheet_name= 'tab in the excel of lookup table', columns= ['Thing I need', 'Thing I need2', 'thing I need 3', 'Thing I need 4', 'Key value on both data frames'], dtype= object, header=0)
+    #print('df6')
+    #print(df6.shape)
+
+
+
+    df7 = pd.merge(df2, df3, on='Key value on both data frames', how= 'inner')
+    #print('df7')
+    #print(df7.shape)
+    df8 = pd.merge(df7, df4, on='Key value on both data frames', how= 'inner')
+    #print('df8')
+    #print(df8.shape)
+    df9 = pd.merge(df8, df5, on='Key value on both data frames', how= 'inner')
+    #print('df9')
+    #print(df9.shape)
+
+    #df10 = pd.merge(df9, df6, on='Key value on both data frames', how= 'inner')
+    #print('df10')
+    #print(df10.shape)
+
+
+    output = df9
+    print(output.shape)
+
+
+    print('Working')
+
+    pd.DataFrame(output).to_excel(target, index= False, sheet_name='2015 data file',
+                                  columns=['Column Names1', 'Column Names2', 'Column Names3', 'Column Names4', 'Column Names5', 'Column Names6'], startrow=0, startcol=0)
+    print('loaded to target')
+
+
